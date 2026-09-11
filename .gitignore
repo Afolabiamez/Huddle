@@ -1,0 +1,6 @@
+# Planning and AI assistant context files
+CLAUDE*.md
+
+# OS
+.DS_Store
+Thumbs.db
