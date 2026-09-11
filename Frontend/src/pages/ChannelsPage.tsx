@@ -4,6 +4,7 @@ import TopBar from "../components/TopBar";
 import { api } from "../api/client";
 import { ApiError, type Channel } from "../api/types";
 import { useAuth } from "../context/AuthContext";
+import { colorFor, initialFor } from "../lib/avatarColor";
 
 export default function ChannelsPage() {
   const [channels, setChannels] = useState<Channel[] | null>(null);
@@ -87,9 +88,21 @@ export default function ChannelsPage() {
           <ul className="channel-list">
             {channels?.map((channel) => (
               <li key={channel.id} className="channel-row">
-                <div>
-                  <span className="channel-hash">#</span> {channel.name}
-                  <span className="muted"> · {channel.memberIds.length} member(s)</span>
+                <div className="channel-row-main">
+                  <span
+                    className="channel-icon"
+                    style={{ background: colorFor(channel.name) }}
+                    aria-hidden="true"
+                  >
+                    {initialFor(channel.name)}
+                  </span>
+                  <div className="channel-row-text">
+                    <div className="channel-row-name">
+                      <span className="channel-hash">#</span>
+                      {channel.name}
+                    </div>
+                    <div className="muted">{channel.memberIds.length} member(s)</div>
+                  </div>
                 </div>
                 {isMember(channel) ? (
                   <button className="secondary-button" onClick={() => navigate(`/channels/${channel.id}`)}>

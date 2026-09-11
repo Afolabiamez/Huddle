@@ -4,6 +4,7 @@ import TopBar from "../components/TopBar";
 import { api } from "../api/client";
 import { ApiError, type Channel, type Message } from "../api/types";
 import { useAuth } from "../context/AuthContext";
+import { colorFor, initialFor } from "../lib/avatarColor";
 
 export default function ChannelPage() {
   const { channelId } = useParams<{ channelId: string }>();
@@ -105,8 +106,15 @@ export default function ChannelPage() {
       <main className="content channel-view">
         <div className="channel-header">
           <Link to="/channels" className="link-button">
-            ← Channels
+            ‹
           </Link>
+          <span
+            className="channel-icon"
+            style={{ background: colorFor(channel.name) }}
+            aria-hidden="true"
+          >
+            {initialFor(channel.name)}
+          </span>
           <h2>
             <span className="channel-hash">#</span>
             {channel.name}
@@ -118,23 +126,35 @@ export default function ChannelPage() {
           {messages !== null && messages.length === 0 && (
             <p className="muted">No messages yet — say hello.</p>
           )}
-          {messages?.map((m) => (
-            <div key={m.id} className={"message" + (m.authorId === user?.id ? " message-own" : "")}>
-              <div className="message-meta">
-                <span className="message-author">{m.authorEmail}</span>
-                <span className="message-time">
-                  {new Date(m.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+          {messages?.map((m) => {
+            const isOwn = m.authorId === user?.id;
+            return (
+              <div key={m.id} className={"message" + (isOwn ? " message-own" : "")}>
+                <span
+                  className="message-avatar"
+                  style={{ background: colorFor(m.authorEmail) }}
+                  aria-hidden="true"
+                >
+                  {initialFor(m.authorEmail)}
                 </span>
+                <div className="message-bubble">
+                  <div className="message-meta">
+                    <span className="message-author">{m.authorEmail}</span>
+                    <span className="message-time">
+                      {new Date(m.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                    </span>
+                  </div>
+                  <div className="message-text">{m.text}</div>
+                </div>
               </div>
-              <div className="message-text">{m.text}</div>
-            </div>
-          ))}
+            );
+          })}
           <div ref={bottomRef} />
         </div>
 
         {error && <div className="form-error" role="alert">{error}</div>}
 
-        <form className="inline-form" onSubmit={handleSend}>
+        <form className="message-input-form" onSubmit={handleSend}>
           <input
             placeholder={`Message #${channel.name}`}
             value={draft}

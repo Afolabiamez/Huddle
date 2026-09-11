@@ -29,8 +29,20 @@ export default function SignupPage() {
 
   return (
     <div className="auth-page">
+      <div className="auth-hero">
+        <button
+          type="button"
+          className="auth-hero-back"
+          aria-label="Back"
+          onClick={() => navigate(-1)}
+        >
+          ‹
+        </button>
+        <div className="auth-hero-brand">Huddle</div>
+        <div className="auth-hero-tagline">Effortless team collaboration, built for remote speed.</div>
+      </div>
       <form className="auth-card" onSubmit={handleSubmit}>
-        <h1>Create your account</h1>
+        <h1>Enter details</h1>
         <p className="auth-subtitle">Get your team talking in a couple of minutes.</p>
 
         <label htmlFor="email">Email</label>
@@ -38,6 +50,7 @@ export default function SignupPage() {
           id="email"
           type="email"
           required
+          placeholder="Enter email address"
           autoComplete="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
@@ -50,6 +63,7 @@ export default function SignupPage() {
           type="password"
           required
           minLength={6}
+          placeholder="Enter password"
           autoComplete="new-password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
@@ -59,11 +73,11 @@ export default function SignupPage() {
         {error && <div className="form-error" role="alert">{error}</div>}
 
         <button type="submit" className="primary-button" disabled={submitting}>
-          {submitting ? "Creating account…" : "Sign up"}
+          {submitting ? "Creating account…" : "Create account"}
         </button>
 
         <p className="auth-switch">
-          Already have an account? <Link to="/login">Log in</Link>
+          Already have an account? <Link to="/login">Sign in</Link>
         </p>
       </form>
     </div>
