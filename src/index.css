@@ -1,0 +1,36 @@
+@import "tailwindcss";
+
+/*
+  Google Fonts, matching the mockups: 'Baloo 2' (rounded, bold - used for the
+  Huddle wordmark and headings) paired with 'Inter' (body text).
+*/
+@import url("https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700&family=Inter:wght@400;500;600;700&display=swap");
+
+/*
+  DESIGN TOKENS
+  -------------
+  Tailwind v4 reads custom design tokens from a @theme block directly in
+  CSS (this replaces the old tailwind.config.js theme.extend approach from
+  Tailwind v3). Declaring them here means every component can reference
+  bg-primary, text-ink, font-heading, etc. as real Tailwind utility
+  classes -- no more hex codes duplicated inside style={{ }} props.
+*/
+@theme {
+  --color-primary: #1d6fe0;
+  --color-primary-dark: #144faf;
+  --color-ink: #14161a;
+  --color-slate: #6b7280;
+  --color-border: #e4e7ec;
+  --color-surface-muted: #f5f6f8;
+  --color-danger: #e5484d;
+  --color-danger-bg: #fdecec;
+  --color-success: #22c55e;
+
+  --font-heading: "Baloo 2", sans-serif;
+  --font-body: "Inter", sans-serif;
+}
+
+body {
+  font-family: var(--font-body);
+  margin: 0;
+}
