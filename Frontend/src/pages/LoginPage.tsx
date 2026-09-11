@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { api } from "../api/mockApi";
+import { api } from "../api/client";
 import { ApiError } from "../api/types";
 import { useAuth } from "../context/AuthContext";
 

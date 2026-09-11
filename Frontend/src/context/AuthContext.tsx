@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
-import { api } from "../api/mockApi";
+import { api } from "../api/client";
 import type { User } from "../api/types";
 
 interface AuthContextValue {

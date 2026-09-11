@@ -1,14 +1,29 @@
 # Huddle — Frontend/Backend API Contract (Sprint 1)
 
-The frontend currently runs against a mock client (`src/api/mockApi.ts`) that
-implements the `HuddleApi` interface in `src/api/types.ts`. It's backed by
-`localStorage` so the UI is fully functional standalone.
+The frontend can run two ways:
 
-To swap in the real backend once it's ready: implement a `RealApi` class that
-satisfies the same `HuddleApi` interface (an HTTP client hitting the
-endpoints below), then change one import in `src/api/mockApi.ts` usages (or
-add `src/api/client.ts` that picks mock vs real via an env flag). No page
-component needs to change if the endpoint shapes below are matched.
+- **Mock mode** (`src/api/mockApi.ts`) — a `localStorage`-backed
+  implementation of `HuddleApi` (`src/api/types.ts`). Fully working
+  standalone, no backend needed. This is the default when no backend URL
+  is configured.
+- **Real mode** (`src/api/httpApi.ts`) — an HTTP client that calls the
+  endpoints below.
+
+`src/api/client.ts` picks between them automatically based on the
+`VITE_API_BASE_URL` env var (see `.env` / `.env.example`), so no page
+component ever imports the mock or HTTP client directly — they all import
+from `src/api/client.ts`.
+
+Currently pointed at the deployed backend:
+`https://huddle-backend-xblp.onrender.com` (set in `.env`).
+
+**Auth mechanism:** the HTTP client sends `credentials: "include"` (cookie
+session) on every request, and additionally caches an optional `token`
+field from the signup/login response and sends it as
+`Authorization: Bearer <token>`. If the backend uses a different
+mechanism (e.g. a differently-named token field, or a header other than
+`Authorization`), tell the frontend and this is a one-file change in
+`src/api/httpApi.ts`.
 
 ## Auth
 

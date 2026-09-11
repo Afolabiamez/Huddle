@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import TopBar from "../components/TopBar";
-import { api } from "../api/mockApi";
+import { api } from "../api/client";
 import { ApiError, type Channel, type Message } from "../api/types";
 import { useAuth } from "../context/AuthContext";
 
