@@ -112,3 +112,252 @@ Nest is an MIT-licensed open source project. It can grow thanks to the sponsors 
 ## License
 
 Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+
+# Huddle Backend — Channels & Messaging
+
+## Sprint 1 — Channels & Messaging
+
+Implemented the backend functionality for:
+
+* Creating channels
+* Automatically adding the creator as a channel member
+* Listing channels available to the current user
+* Getting a channel
+* Joining public channels
+* Listing channel members
+* Sending messages to a channel
+* Reading messages from a channel
+* Preventing non-members from sending/reading messages
+* Pagination support for channel messages
+
+---
+
+## Authentication Integration
+
+### Current development setup
+
+The real JWT authentication is being handled separately by the authentication developer.
+
+For development/testing, the channel and messaging endpoints currently use a **temporary development auth guard** that sets:
+
+```text
+user.id = "test-user-1"
+```
+
+This is **not production authentication** and must be replaced with the real JWT authentication before merging into the main branch.
+
+### What the auth developer needs to do
+
+The real `JwtAuthGuard` should authenticate the request and make the authenticated user's ID available as:
+
+```ts
+request.user.id
+```
+
+The existing controllers already use:
+
+```ts
+@CurrentUser() user: { id: string }
+```
+
+So the authentication implementation should make sure `request.user.id` contains the authenticated user's database ID.
+
+The channel and messaging code does not need to be changed to receive the user ID once the real guard is connected.
+
+---
+
+## Channel Endpoints
+
+All channel endpoints require authentication.
+
+### Create channel
+
+```http
+POST /channels
+```
+
+Request:
+
+```json
+{
+  "name": "general",
+  "description": "General discussion",
+  "isPrivate": false
+}
+```
+
+The authenticated user automatically becomes a member of the channel.
+
+### List channels
+
+```http
+GET /channels
+```
+
+Returns public channels and private channels that the authenticated user belongs to.
+
+### Get channel
+
+```http
+GET /channels/:id
+```
+
+### Join channel
+
+```http
+POST /channels/:id/join
+```
+
+Users can join public channels.
+
+Private channels return `403 Forbidden`.
+
+### List members
+
+```http
+GET /channels/:id/members
+```
+
+---
+
+## Messaging Endpoints
+
+### Send message
+
+```http
+POST /channels/:channelId/messages
+```
+
+Request:
+
+```json
+{
+  "content": "Hey team!"
+}
+```
+
+The sender is taken from the authenticated user:
+
+```ts
+user.id
+```
+
+The user must be a member of the channel.
+
+### Read messages
+
+```http
+GET /channels/:channelId/messages
+```
+
+Messages are returned with pagination support.
+
+Only channel members can read messages.
+
+---
+
+## Database Models
+
+The implementation uses:
+
+```text
+User
+  │
+  ├── Channel (createdChannels)
+  ├── ChannelMember
+  └── Message
+
+Channel
+  │
+  ├── ChannelMember
+  └── Message
+
+ChannelMember
+  ├── User
+  └── Channel
+
+Message
+  ├── User (sender)
+  └── Channel
+```
+
+Important relationship:
+
+```text
+User ←→ ChannelMember ←→ Channel
+```
+
+This is used to determine whether a user belongs to a channel.
+
+---
+
+## Important ID Note
+
+The project uses Prisma `cuid()` IDs, **not UUIDs**.
+
+Therefore, the controllers use:
+
+```ts
+@Param('id') id: string
+```
+
+and should **not** use:
+
+```ts
+ParseUUIDPipe
+```
+
+The same applies to `channelId`.
+
+---
+
+## Authentication Handoff
+
+Before merging this branch into `main`:
+
+1. Replace the temporary development `JwtAuthGuard` with the real JWT guard.
+2. Ensure authenticated requests populate:
+
+```ts
+request.user = {
+  id: authenticatedUserId
+}
+```
+
+3. Ensure `@CurrentUser()` continues to return the authenticated user.
+4. Remove the hard-coded:
+
+```text
+test-user-1
+```
+
+authentication behavior.
+5. Test the following with two real users:
+
+* User A creates a channel.
+* User B joins the channel.
+* User A sends a message.
+* User B reads the message.
+* A non-member cannot send/read messages.
+* Private channels reject unauthorized users.
+
+---
+
+## Development Testing
+
+The channel and messaging flow has already been tested successfully with:
+
+```text
+POST /channels
+POST /channels/:channelId/messages
+GET /channels/:channelId/messages
+```
+
+Channel creation, creator membership, message creation, message persistence, and message retrieval are working.
+
+Branch:
+
+```text
+feat/channels-creation-and--messaging
+```
+
