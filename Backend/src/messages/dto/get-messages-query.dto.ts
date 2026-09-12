@@ -1,13 +1,15 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import { IsInt, IsOptional, IsUUID, Max, Min } from 'class-validator';
+import { IsInt, IsOptional, IsString, Length, Max, Min } from 'class-validator';
 
 export class GetMessagesQueryDto {
   @ApiPropertyOptional({
-    description: 'Return messages created before this message id (cursor pagination)',
+    description:
+      'Return messages created before this message id (cursor pagination)',
   })
   @IsOptional()
-  @IsUUID()
+  @IsString()
+  @Length(1, 128)
   before?: string;
 
   @ApiPropertyOptional({ default: 50, minimum: 1, maximum: 100 })

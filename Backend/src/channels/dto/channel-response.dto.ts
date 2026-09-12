@@ -10,6 +10,14 @@ export class ChannelResponseDto {
   @ApiProperty() memberCount?: number;
 }
 
+export class ChannelListItemResponseDto extends ChannelResponseDto {
+  @ApiProperty({
+    type: Boolean,
+    description: 'Whether the authenticated user has joined this channel',
+  })
+  isMember: boolean;
+}
+
 export class ChannelMemberResponseDto {
   @ApiProperty() id: string;
   @ApiProperty() channelId: string;

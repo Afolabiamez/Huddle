@@ -12,9 +12,23 @@ model User {
   passwordHash String
   createdAt    DateTime @default(now())
 
-  createdChannels Channel[]      @relation("ChannelCreator")
-  memberships     ChannelMember[]
-  messages        Message[]
+  createdChannels     Channel[]           @relation("ChannelCreator")
+  memberships         ChannelMember[]
+  messages            Message[]
+  sessions            AuthSession[]
+  receivedInvitations ChannelInvitation[] @relation("InvitationRecipient")
+  sentInvitations     ChannelInvitation[] @relation("InvitationSender")
+}
+
+model AuthSession {
+  id        String   @id
+  userId    String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
 }
 
 model Channel {
@@ -22,17 +36,35 @@ model Channel {
   name        String   @unique
   description String?
   isPrivate   Boolean  @default(false)
-  createdById  String
+  createdById String
   createdAt   DateTime @default(now())
 
-  creator  User            @relation("ChannelCreator", fields: [createdById], references: [id])
-  members  ChannelMember[]
-  messages Message[]
+  creator     User                @relation("ChannelCreator", fields: [createdById], references: [id])
+  members     ChannelMember[]
+  messages    Message[]
+  invitations ChannelInvitation[]
+}
+
+model ChannelInvitation {
+  id          String    @id @default(cuid())
+  channelId   String
+  inviteeId   String
+  invitedById String
+  createdAt   DateTime  @default(now())
+  expiresAt   DateTime
+  acceptedAt  DateTime?
+
+  channel   Channel @relation(fields: [channelId], references: [id], onDelete: Cascade)
+  invitee   User    @relation("InvitationRecipient", fields: [inviteeId], references: [id], onDelete: Cascade)
+  invitedBy User    @relation("InvitationSender", fields: [invitedById], references: [id], onDelete: Cascade)
+
+  @@unique([channelId, inviteeId])
+  @@index([inviteeId, acceptedAt])
 }
 
 model ChannelMember {
-  id        String   @id @default(cuid())
-  joinedAt  DateTime @default(now())
+  id       String   @id @default(cuid())
+  joinedAt DateTime @default(now())
 
   userId    String
   channelId String
