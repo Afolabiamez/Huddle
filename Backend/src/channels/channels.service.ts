@@ -30,8 +30,13 @@ export class ChannelsService {
       });
       return this.toChannelDto(channel);
     } catch (err) {
-      if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2002') {
-        throw new ConflictException(`Channel name "${dto.name}" is already taken`);
+      if (
+        err instanceof Prisma.PrismaClientKnownRequestError &&
+        err.code === 'P2002'
+      ) {
+        throw new ConflictException(
+          `Channel name "${dto.name}" is already taken`,
+        );
       }
       throw err;
     }
@@ -72,11 +77,28 @@ export class ChannelsService {
     return channel;
   }
 
+  async findOneForUser(userId: string, channelId: string) {
+    const channel = await this.findOneOrThrow(channelId);
+    if (channel.isPrivate) {
+      const membership = await this.prisma.channelMember.findUnique({
+        where: { channelId_userId: { channelId, userId } },
+      });
+      if (!membership) {
+        throw new ForbiddenException(
+          'You are not a member of this private channel',
+        );
+      }
+    }
+    return this.toChannelDto(channel);
+  }
+
   async join(userId: string, channelId: string) {
     const channel = await this.findOneOrThrow(channelId);
 
     if (channel.isPrivate) {
-      throw new ForbiddenException('This channel is private and requires an invite');
+      throw new ForbiddenException(
+        'This channel is private and requires an invite',
+      );
     }
 
     try {
@@ -85,15 +107,18 @@ export class ChannelsService {
       });
       return membership;
     } catch (err) {
-      if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2002') {
+      if (
+        err instanceof Prisma.PrismaClientKnownRequestError &&
+        err.code === 'P2002'
+      ) {
         throw new ConflictException('Already a member of this channel');
       }
       throw err;
     }
   }
 
-  async listMembers(channelId: string) {
-    await this.findOneOrThrow(channelId);
+  async listMembers(userId: string, channelId: string) {
+    await this.findOneForUser(userId, channelId);
     return this.prisma.channelMember.findMany({
       where: { channelId },
       orderBy: { joinedAt: 'asc' },
@@ -112,9 +137,13 @@ export class ChannelsService {
 
     if (!membership) {
       if (channel.isPrivate) {
-        throw new ForbiddenException('You are not a member of this private channel');
+        throw new ForbiddenException(
+          'You are not a member of this private channel',
+        );
       }
-      throw new ForbiddenException('Join the channel before sending or reading messages');
+      throw new ForbiddenException(
+        'Join the channel before sending or reading messages',
+      );
     }
   }
 

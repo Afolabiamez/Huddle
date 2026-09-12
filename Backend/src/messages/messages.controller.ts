@@ -18,6 +18,7 @@ import { CurrentUser } from '../common/decorators/current-user.decorator.js';
 import { CreateMessageDto } from './dto/create-message.dto.js';
 import { GetMessagesQueryDto } from './dto/get-messages-query.dto.js';
 import { MessageResponseDto } from './dto/message-response.dto.js';
+import { MessagePageResponseDto } from './dto/message-page-response.dto.js';
 import { MessagesService } from './messages.service.js';
 
 @ApiTags('Messages')
@@ -40,8 +41,11 @@ export class MessagesController {
   }
 
   @Get()
-  @ApiOperation({ summary: 'Read messages in a channel, newest page first (cursor pagination)' })
-  @ApiResponse({ status: 200, type: [MessageResponseDto] })
+  @ApiOperation({
+    summary:
+      'Read messages in a channel, newest page first (cursor pagination)',
+  })
+  @ApiResponse({ status: 200, type: MessagePageResponseDto })
   @ApiResponse({ status: 403, description: 'Not a member of this channel' })
   findAll(
     @CurrentUser() user: { id: string },

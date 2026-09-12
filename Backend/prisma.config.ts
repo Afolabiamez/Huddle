@@ -1,5 +1,9 @@
 import { defineConfig, env } from 'prisma/config';
-import 'dotenv/config';
+import { config } from 'dotenv';
+
+if (!['test', 'production'].includes(process.env.NODE_ENV ?? '')) {
+  config({ path: ['.env.local', '.env'], quiet: true });
+}
 
 export default defineConfig({
   schema: 'prisma/schema.prisma',

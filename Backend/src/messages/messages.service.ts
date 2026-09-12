@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { ChannelsService } from '../channels/channels.service.js';
 import { CreateMessageDto } from './dto/create-message.dto.js';
@@ -30,26 +30,43 @@ export class MessagesService {
    * render top-to-bottom without re-sorting, plus a `nextCursor` to fetch
    * the next older page.
    */
-  async findForChannel(userId: string, channelId: string, query: GetMessagesQueryDto) {
+  async findForChannel(
+    userId: string,
+    channelId: string,
+    query: GetMessagesQueryDto,
+  ) {
     await this.channelsService.assertMembership(userId, channelId);
 
     const limit = query.limit ?? 50;
 
+    if (query.before) {
+      const cursor = await this.prisma.message.findFirst({
+        where: { id: query.before, channelId },
+        select: { id: true },
+      });
+      if (!cursor) {
+        throw new BadRequestException(
+          'Message cursor is invalid for this channel.',
+        );
+      }
+    }
+
     const messages = await this.prisma.message.findMany({
       where: { channelId },
       orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
-      take: limit,
+      take: limit + 1,
       ...(query.before && {
         cursor: { id: query.before },
         skip: 1, // don't include the cursor message itself
       }),
     });
 
-    const hasMore = messages.length === limit;
-    const nextCursor = hasMore ? messages[messages.length - 1].id : null;
+    const hasMore = messages.length > limit;
+    const page = messages.slice(0, limit);
+    const nextCursor = hasMore ? page[page.length - 1].id : null;
 
     return {
-      messages: messages.reverse(), // oldest -> newest for display
+      messages: page.reverse(), // oldest -> newest for display
       nextCursor,
     };
   }

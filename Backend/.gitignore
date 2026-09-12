@@ -9,6 +9,9 @@ dist/
 .env.local
 .env.*.local
 
+# Persistent local PostgreSQL data and generated credentials
+.local/
+
 # Prisma local database
 prisma/*.db
 prisma/*.db-journal
