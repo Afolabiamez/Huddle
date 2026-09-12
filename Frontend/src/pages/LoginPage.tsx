@@ -29,56 +29,56 @@ export default function LoginPage() {
 
   return (
     <div className="auth-page">
-      <div className="auth-hero">
-        <button
-          type="button"
-          className="auth-hero-back"
-          aria-label="Back"
-          onClick={() => navigate(-1)}
-        >
-          ‹
-        </button>
-        <div className="auth-hero-brand">Huddle</div>
-        <div className="auth-hero-tagline">Sign in to join your team's workspace.</div>
+      <div className="auth-shell">
+        <div className="auth-hero">
+          <button
+            type="button"
+            className="auth-hero-back"
+            aria-label="Back"
+            onClick={() => navigate(-1)}
+          />
+          <div className="auth-hero-brand">Huddle</div>
+          <div className="auth-hero-tagline">Sign in to join your team's workspace.</div>
+        </div>
+        <form className="auth-card" onSubmit={handleSubmit}>
+          <h1>Enter login details</h1>
+          <p className="auth-subtitle">Log in to jump back into your channels.</p>
+
+          <label htmlFor="email">Email</label>
+          <input
+            id="email"
+            type="email"
+            required
+            placeholder="Enter email address"
+            autoComplete="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            disabled={submitting}
+          />
+
+          <label htmlFor="password">Password</label>
+          <input
+            id="password"
+            type="password"
+            required
+            placeholder="Enter password"
+            autoComplete="current-password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            disabled={submitting}
+          />
+
+          {error && <div className="form-error" role="alert">{error}</div>}
+
+          <button type="submit" className="primary-button" disabled={submitting}>
+            {submitting ? "Logging in…" : "Login"}
+          </button>
+
+          <p className="auth-switch">
+            Don't have an account? <Link to="/signup">Create one</Link>
+          </p>
+        </form>
       </div>
-      <form className="auth-card" onSubmit={handleSubmit}>
-        <h1>Enter login details</h1>
-        <p className="auth-subtitle">Log in to jump back into your channels.</p>
-
-        <label htmlFor="email">Email</label>
-        <input
-          id="email"
-          type="email"
-          required
-          placeholder="Enter email address"
-          autoComplete="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          disabled={submitting}
-        />
-
-        <label htmlFor="password">Password</label>
-        <input
-          id="password"
-          type="password"
-          required
-          placeholder="Enter password"
-          autoComplete="current-password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          disabled={submitting}
-        />
-
-        {error && <div className="form-error" role="alert">{error}</div>}
-
-        <button type="submit" className="primary-button" disabled={submitting}>
-          {submitting ? "Logging in…" : "Login"}
-        </button>
-
-        <p className="auth-switch">
-          Don't have an account? <Link to="/signup">Create one</Link>
-        </p>
-      </form>
     </div>
   );
 }
