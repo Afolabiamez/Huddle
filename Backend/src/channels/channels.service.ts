@@ -26,7 +26,7 @@ export class ChannelsService {
             create: { userId },
           },
         },
-        include: { _count: { select: { members: true } } },
+        include: { _count: { select: { members: true } }, creator: { select: { id: true, email: true } } },
       });
       return this.toChannelDto(channel);
     } catch (err) {
@@ -47,28 +47,39 @@ export class ChannelsService {
    * any private channel they already belong to. Flags which ones they've
    * joined so the client can render "Join" vs "Open".
    */
-  async findAllForUser(userId: string) {
+  async findAllForUser(
+    userId: string,
+    pagination: { limit: number; cursor?: string } = { limit: 50 },
+  ) {
     const channels = await this.prisma.channel.findMany({
       where: {
         OR: [{ isPrivate: false }, { members: { some: { userId } } }],
       },
       include: {
         _count: { select: { members: true } },
+        creator: { select: { id: true, email: true } },
         members: { where: { userId }, select: { userId: true } },
       },
       orderBy: { createdAt: 'desc' },
+      take: pagination.limit + 1,
+      ...(pagination.cursor && { cursor: { id: pagination.cursor }, skip: 1 }),
     });
 
-    return channels.map((channel) => ({
-      ...this.toChannelDto(channel),
-      isMember: channel.members.length > 0,
-    }));
+    const hasMore = channels.length > pagination.limit;
+    const page = channels.slice(0, pagination.limit);
+    return {
+      channels: page.map((channel) => ({
+        ...this.toChannelDto(channel),
+        isMember: channel.members.length > 0,
+      })),
+      nextCursor: hasMore ? page[page.length - 1].id : null,
+    };
   }
 
   async findOneOrThrow(channelId: string) {
     const channel = await this.prisma.channel.findUnique({
       where: { id: channelId },
-      include: { _count: { select: { members: true } } },
+      include: { _count: { select: { members: true } }, creator: { select: { id: true, email: true } } },
     });
 
     if (!channel) {
@@ -117,11 +128,18 @@ export class ChannelsService {
     }
   }
 
-  async listMembers(userId: string, channelId: string) {
+  async listMembers(
+    userId: string,
+    channelId: string,
+    pagination: { limit: number; offset: number } = { limit: 50, offset: 0 },
+  ) {
     await this.findOneForUser(userId, channelId);
     return this.prisma.channelMember.findMany({
       where: { channelId },
       orderBy: { joinedAt: 'asc' },
+      include: { user: { select: { id: true, email: true } } },
+      take: pagination.limit,
+      skip: pagination.offset,
     });
   }
 
@@ -155,6 +173,7 @@ export class ChannelsService {
     createdById: string;
     createdAt: Date;
     _count: { members: number };
+    creator: { id: string; email: string };
   }) {
     return {
       id: channel.id,
@@ -162,6 +181,7 @@ export class ChannelsService {
       description: channel.description,
       isPrivate: channel.isPrivate,
       createdById: channel.createdById,
+      createdBy: channel.creator,
       createdAt: channel.createdAt,
       memberCount: channel._count.members,
     };

@@ -69,8 +69,8 @@ model ChannelMember {
   userId    String
   channelId String
 
-  user    User    @relation(fields: [userId], references: [id])
-  channel Channel @relation(fields: [channelId], references: [id])
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  channel Channel @relation(fields: [channelId], references: [id], onDelete: Cascade)
 
   @@unique([channelId, userId])
 }
@@ -83,8 +83,8 @@ model Message {
   senderId  String
   channelId String
 
-  sender  User    @relation(fields: [senderId], references: [id])
-  channel Channel @relation(fields: [channelId], references: [id])
+  sender  User    @relation(fields: [senderId], references: [id], onDelete: Cascade)
+  channel Channel @relation(fields: [channelId], references: [id], onDelete: Cascade)
 
   @@index([channelId, createdAt])
 }

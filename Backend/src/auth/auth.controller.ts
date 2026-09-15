@@ -10,7 +10,6 @@ import {
   ValidationPipe,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
-import type { Request } from 'express';
 import { AuthService } from './auth.service.js';
 import { SignupDto } from './dto/signup.dto.js';
 import { LoginDto } from './dto/login.dto.js';
@@ -49,10 +48,9 @@ export class AuthController {
   @Get('me')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
-  async me(@Req() req: Request) {
-    const userId = (req.user as { id: string }).id;
-    const user = await this.authService.findById(userId);
-    if (!user) throw new UnauthorizedException();
+  async me(@Req() req: AuthenticatedRequest) {
+    const user = await this.authService.findById(req.user.id);
+    if (!user) throw new UnauthorizedException('User no longer exists.');
     return user;
   }
 }

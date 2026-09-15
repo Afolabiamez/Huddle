@@ -1,7 +1,8 @@
-import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Query, UseGuards } from '@nestjs/common';
 import {
   ApiBearerAuth,
   ApiOperation,
+  ApiQuery,
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
@@ -35,8 +36,17 @@ export class ChannelsController {
     summary: 'List public channels plus private channels the user has joined',
   })
   @ApiResponse({ status: 200, type: [ChannelListItemResponseDto] })
-  findAll(@CurrentUser() user: { id: string }) {
-    return this.channelsService.findAllForUser(user.id);
+  @ApiQuery({ name: 'limit', required: false, example: 50 })
+  @ApiQuery({ name: 'cursor', required: false, description: 'Last channel id from previous page' })
+  findAll(
+    @CurrentUser() user: { id: string },
+    @Query('limit') limit?: string,
+    @Query('cursor') cursor?: string,
+  ) {
+    return this.channelsService.findAllForUser(user.id, {
+      limit: limit ? Math.min(parseInt(limit, 10) || 50, 100) : 50,
+      cursor,
+    });
   }
 
   @Get(':id')
@@ -63,11 +73,18 @@ export class ChannelsController {
   @Get(':id/members')
   @ApiOperation({ summary: 'List members of a channel' })
   @ApiResponse({ status: 200, type: [ChannelMemberResponseDto] })
-  @ApiResponse({
-    status: 403,
-    description: 'Not a member of this private channel',
-  })
-  listMembers(@CurrentUser() user: { id: string }, @Param('id') id: string) {
-    return this.channelsService.listMembers(user.id, id);
+  @ApiResponse({ status: 403, description: 'Not a member of this private channel' })
+  @ApiQuery({ name: 'limit', required: false, example: 50 })
+  @ApiQuery({ name: 'offset', required: false, example: 0 })
+  listMembers(
+    @CurrentUser() user: { id: string },
+    @Param('id') id: string,
+    @Query('limit') limit?: string,
+    @Query('offset') offset?: string,
+  ) {
+    return this.channelsService.listMembers(user.id, id, {
+      limit: limit ? Math.min(parseInt(limit, 10) || 50, 100) : 50,
+      offset: offset ? parseInt(offset, 10) || 0 : 0,
+    });
   }
 }
