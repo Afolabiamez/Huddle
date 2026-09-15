@@ -1,6 +1,7 @@
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import { rateLimit } from 'express-rate-limit';
 import helmet from 'helmet';
+import { CorsOptions } from '@nestjs/common/interfaces/external/cors-options.interface';
 
 export interface ConfigureAppOptions {
   authRateLimit?: {
@@ -16,6 +17,15 @@ export function configureApp(
 ): void {
   const production =
     options.production ?? process.env.NODE_ENV === 'production';
+
+  const corsOptions: CorsOptions = {
+    origin: process.env.FRONTEND_URL ?? 'http://localhost:5173',
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    credentials: true,
+  };
+  app.enableCors(corsOptions);
+
   app.use(
     helmet({
       contentSecurityPolicy: {
