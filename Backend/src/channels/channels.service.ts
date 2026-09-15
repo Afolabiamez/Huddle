@@ -26,7 +26,7 @@ export class ChannelsService {
             create: { userId },
           },
         },
-        include: { _count: { select: { members: true } } },
+        include: { _count: { select: { members: true } }, creator: { select: { id: true, email: true } } },
       });
       return this.toChannelDto(channel);
     } catch (err) {
@@ -54,6 +54,7 @@ export class ChannelsService {
       },
       include: {
         _count: { select: { members: true } },
+        creator: { select: { id: true, email: true } },
         members: { where: { userId }, select: { userId: true } },
       },
       orderBy: { createdAt: 'desc' },
@@ -68,7 +69,7 @@ export class ChannelsService {
   async findOneOrThrow(channelId: string) {
     const channel = await this.prisma.channel.findUnique({
       where: { id: channelId },
-      include: { _count: { select: { members: true } } },
+      include: { _count: { select: { members: true } }, creator: { select: { id: true, email: true } } },
     });
 
     if (!channel) {
@@ -122,6 +123,7 @@ export class ChannelsService {
     return this.prisma.channelMember.findMany({
       where: { channelId },
       orderBy: { joinedAt: 'asc' },
+      include: { user: { select: { id: true, email: true } } },
     });
   }
 
@@ -155,6 +157,7 @@ export class ChannelsService {
     createdById: string;
     createdAt: Date;
     _count: { members: number };
+    creator: { id: string; email: string };
   }) {
     return {
       id: channel.id,
@@ -162,6 +165,7 @@ export class ChannelsService {
       description: channel.description,
       isPrivate: channel.isPrivate,
       createdById: channel.createdById,
+      createdBy: channel.creator,
       createdAt: channel.createdAt,
       memberCount: channel._count.members,
     };
