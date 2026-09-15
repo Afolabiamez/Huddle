@@ -6,7 +6,7 @@ import { ChannelsModule } from './channels/channels.module.js';
 import { MessagesModule } from './messages/messages.module.js';
 import { validateEnvironment } from './config/environment.js';
 import { HealthController } from './health/health.controller.js';
-// import { UsersModule } from './users/users.module'; // Item 1 - auth teammate's module
+import { UsersModule } from './users/users.module.js';
 
 @Module({
   imports: [
@@ -22,7 +22,7 @@ import { HealthController } from './health/health.controller.js';
     AuthModule,
     ChannelsModule,
     MessagesModule,
-    // UsersModule,
+    UsersModule,
   ],
   controllers: [HealthController],
 })
