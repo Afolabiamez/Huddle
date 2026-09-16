@@ -77,6 +77,7 @@ interface BackendChannel {
   createdBy?: { id: string; email: string };
   createdAt: string;
   memberCount: number;
+  isMember?: boolean;
 }
 
 interface BackendMessage {
@@ -91,10 +92,7 @@ interface BackendMessage {
 // ---- Mappers: backend shape -> frontend shape ----
 
 function mapChannel(c: BackendChannel, me: User | null): Channel {
-  const joined = getJoinedSet().has(c.id) || (!!me && c.createdById === me.id);
-  // The backend doesn't expose a member list yet, only a count. We can only be
-  // sure about our own membership, so we synthesize a memberIds array that's
-  // the right length (for display) and includes our own id when we know we're in it.
+  const joined = c.isMember ?? getJoinedSet().has(c.id) ?? (!!me && c.createdById === me.id);
   const memberIds: string[] = [];
   if (joined && me) memberIds.push(me.id);
   while (memberIds.length < c.memberCount) memberIds.push(`unknown-member-${memberIds.length}`);
