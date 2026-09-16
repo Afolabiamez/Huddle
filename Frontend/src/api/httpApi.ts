@@ -162,7 +162,7 @@ class HttpApi implements HuddleApi {
   }
 
   async listChannels(): Promise<Channel[]> {
-    const channels = await request<BackendChannel[]>("/channels");
+    const { channels } = await request<{ channels: BackendChannel[]; nextCursor: string | null }>("/channels");
     const me = getCachedMe();
     return channels.map((c) => mapChannel(c, me));
   }
