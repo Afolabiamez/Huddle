@@ -199,7 +199,7 @@ class HttpApi implements HuddleApi {
   }
 
   async listMessages(channelId: string): Promise<Message[]> {
-    const messages = await request<BackendMessage[]>(`/channels/${channelId}/messages`);
+    const { messages } = await request<{ messages: BackendMessage[]; nextCursor: string | null }>(`/channels/${channelId}/messages`);
     const me = getCachedMe();
     return messages.map((m) => mapMessage(m, me));
   }
