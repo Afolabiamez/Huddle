@@ -93,6 +93,7 @@ export class ChannelInvitationsService {
       },
       include: {
         channel: { select: { id: true, name: true, description: true } },
+        invitedBy: { select: { id: true, email: true } },
       },
       orderBy: { createdAt: 'desc' },
     });

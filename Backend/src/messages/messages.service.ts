@@ -21,6 +21,7 @@ export class MessagesService {
         senderId: userId,
         content: dto.content,
       },
+      include: { sender: { select: { id: true, email: true } } },
     });
   }
 
@@ -59,6 +60,7 @@ export class MessagesService {
         cursor: { id: query.before },
         skip: 1, // don't include the cursor message itself
       }),
+      include: { sender: { select: { id: true, email: true } } },
     });
 
     const hasMore = messages.length > limit;

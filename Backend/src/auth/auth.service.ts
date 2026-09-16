@@ -14,6 +14,7 @@ import type { LoginDto } from './dto/login.dto.js';
 const SALT_ROUNDS = 12;
 const GENERIC_AUTH_ERROR = 'Invalid email or password.';
 const SESSION_LIFETIME_SECONDS = 7 * 24 * 60 * 60;
+const MAX_SESSIONS_PER_USER = 5;
 
 export interface AuthenticatedUser {
   id: string;
@@ -30,8 +31,9 @@ export class AuthService {
   async signup(
     dto: SignupDto,
   ): Promise<{ id: string; email: string; token: string }> {
+    const email = dto.email.toLowerCase();
     const existing = await this.prisma.user.findUnique({
-      where: { email: dto.email },
+      where: { email },
     });
     if (existing) {
       throw new ConflictException('This email address is already registered.');
@@ -39,7 +41,7 @@ export class AuthService {
 
     const passwordHash = await bcrypt.hash(dto.password, SALT_ROUNDS);
     return this.prisma.$transaction(async (transaction) => {
-      const user = await this.createUser(transaction, dto.email, passwordHash);
+      const user = await this.createUser(transaction, email, passwordHash);
       const token = await this.issueToken(user.id, transaction);
       return { id: user.id, email: user.email, token };
     });
@@ -69,7 +71,7 @@ export class AuthService {
     dto: LoginDto,
   ): Promise<{ id: string; email: string; token: string }> {
     const user = await this.prisma.user.findUnique({
-      where: { email: dto.email },
+      where: { email: dto.email.toLowerCase() },
     });
 
     // Critical: same error whether email not found OR password wrong
@@ -146,6 +148,18 @@ export class AuthService {
     await transaction.authSession.create({
       data: { id, userId, expiresAt },
     });
+    // Evict oldest sessions if the user exceeds the cap.
+    const sessions = await this.prisma.authSession.findMany({
+      where: { userId },
+      orderBy: { createdAt: 'asc' },
+      select: { id: true },
+    });
+    if (sessions.length > MAX_SESSIONS_PER_USER) {
+      const toDelete = sessions
+        .slice(0, sessions.length - MAX_SESSIONS_PER_USER)
+        .map((s) => s.id);
+      await this.prisma.authSession.deleteMany({ where: { id: { in: toDelete } } });
+    }
     return token;
   }
 }
