@@ -1,0 +1,33 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+
+# Environment variables (never commit secrets)
+.env
+.env.local
+.env.*.local
+
+# Persistent local PostgreSQL data and generated credentials
+.local/
+
+# Prisma local database
+prisma/*.db
+prisma/*.db-journal
+*.db
+*.db-journal
+
+# Prisma agent skills (auto-generated, not source code)
+.agents/
+.claude/
+.cursor/
+.devin/
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
