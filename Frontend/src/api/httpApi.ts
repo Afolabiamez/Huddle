@@ -4,8 +4,8 @@ import { ApiError } from "./types";
 const BASE_URL = (import.meta.env.VITE_API_BASE_URL as string | undefined)?.replace(/\/$/, "");
 
 const TOKEN_KEY = "huddle_token";
-const ME_KEY = "huddle_me"; // cached {id, email} for the signed-in user, used to label our own messages
-const JOINED_KEY = "huddle_joined_channels"; // channel ids we know we've joined/created (backend has no member-list endpoint yet)
+const ME_KEY = "huddle_me";
+const JOINED_KEY = "huddle_joined_channels";
 
 function getToken(): string | null {
   return localStorage.getItem(TOKEN_KEY);
@@ -68,22 +68,22 @@ interface AuthResponse extends User {
 }
 
 // ---- Backend response shapes (real API) ----
-// Backend Channel: { id, name, description, isPrivate, createdById, createdAt, memberCount }
 interface BackendChannel {
   id: string;
   name: string;
   description?: string;
   isPrivate?: boolean;
   createdById: string;
+  createdBy?: { id: string; email: string };
   createdAt: string;
   memberCount: number;
 }
 
-// Backend Message: { id, channelId, senderId, content, createdAt }
 interface BackendMessage {
   id: string;
   channelId: string;
   senderId: string;
+  sender?: { id: string; email: string };
   content: string;
   createdAt: string;
 }
@@ -108,9 +108,7 @@ function mapChannel(c: BackendChannel, me: User | null): Channel {
 }
 
 function mapMessage(m: BackendMessage, me: User | null): Message {
-  // Backend has no endpoint to resolve a userId -> email yet, so we can only
-  // reliably label our own messages. Everything else falls back to the id.
-  const authorEmail = me && m.senderId === me.id ? me.email : m.senderId;
+  const authorEmail = m.sender?.email ?? (me && m.senderId === me.id ? me.email : m.senderId);
   return {
     id: m.id,
     channelId: m.channelId,
@@ -184,8 +182,9 @@ class HttpApi implements HuddleApi {
   }
 
   async joinChannel(channelId: string): Promise<Channel> {
-    const channel = await request<BackendChannel>(`/channels/${channelId}/join`, { method: "POST" });
+    await request<unknown>(`/channels/${channelId}/join`, { method: "POST" });
     addJoined(channelId);
+    const channel = await request<BackendChannel>(`/channels/${channelId}`);
     return mapChannel(channel, getCachedMe());
   }
 
